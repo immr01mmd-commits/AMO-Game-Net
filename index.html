@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Mine Legends Ultimate</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body { margin:0; font-family:sans-serif; background:#0a0f23; color:white; display:flex; justify-content:center; align-items:center; height:100vh;}
+.app { width:100%; max-width:420px; background:#121b38; border-radius:20px; padding:14px;}
+.stats { display:flex; justify-content:space-between; background:#0a0f23; padding:10px; border-radius:12px;}
+.char { text-align:center; font-size:48px; margin-top:6px;}
+.mine { width:160px; height:160px; border-radius:50%; background:radial-gradient(#22c55e,#166534); margin:12px auto; display:flex; justify-content:center; align-items:center; font-size:44px; cursor:pointer;}
+.tabs { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+.tabs button { flex:1; border:none; border-radius:10px; padding:6px; background:#1e293b; color:white; cursor:pointer; min-width:60px;}
+.box { display:none; margin-top:8px;}
+.box.active { display:block;}
+.card { background:#1e293b; border-radius:12px; padding:10px; margin-bottom:6px;}
+button { border:none; border-radius:10px; padding:6px; background:#38bdf8; width:100%; cursor:pointer;}
+.skin { background:#0a0f23; border-radius:8px; padding:6px; margin-top:4px; cursor:pointer;}
+.skin.active { background:#22c55e; color:black;}
+.log { text-align:center; font-size:13px; opacity:0.8;}
+.gold {color:#FFD700;} .silver {color:#C0C0C0;} .bronze {color:#CD7F32;}
+.progress { width:100%; background:#1e293b; border-radius:8px; overflow:hidden; margin:4px 0;}
+.progress-bar { height:14px; background:#22c55e; width:0%;}
+</style>
+</head>
+
+<body>
+<div class="app">
+<h3 style="text-align:center">⛏ Mine Legends Ultimate</h3>
+
+<div class="stats">
+  <div>💰 <span id="coin">0</span></div>
+  <div>⭐ Lv <span id="level">1</span> <button onclick="showLevelInfo()">ℹ️</button></div>
+</div>
+
+<div class="progress"><div id="xpBar" class="progress-bar"></div></div>
+
+<div class="char" id="char">👷</div>
+<div class="mine" onclick="mine()" id="pick">⛏</div>
+
+<div class="tabs">
+  <button onclick="tab('up')">⬆️</button>
+  <button onclick="tab('quest')">📜</button>
+  <button onclick="tab('item')">💎</button>
+  <button onclick="tab('skin')">🎨</button>
+  <button onclick="tab('achievement')">🏅</button>
+  <button onclick="tab('rank')">🏆</button>
+  <button onclick="tab('allplayers')">🌐</button>
+  <button onclick="tab('contact')">📩</button>
+</div>
+
+<!-- UPGRADES -->
+<div id="up" class="box active">
+  <div class="card">
+    Power: <span id="power">1</span>
+    <button onclick="upgrade()">Upgrade (<span id="pCost">10</span>)</button>
+  </div>
+  <div class="card">
+    Auto Mine <button onclick="auto()">Buy (<span id="aCost">50</span>)</button>
+  </div>
+</div>
+
+<!-- QUESTS -->
+<div id="quest" class="box"></div>
+
+<!-- ITEMS -->
+<div id="item" class="box">
+  <div class="card">⚡ Booster (200) <button onclick="booster()">Use</button></div>
+  <div class="card">🧿 Relic (500) <button onclick="relic()">Buy</button></div>
+</div>
+
+<!-- SKINS -->
+<div id="skin" class="box">
+  <div class="card">
+    <b>👷 Character</b>
+    <div class="skin active" onclick="setChar('👷',this)">👷 Miner</div>
+    <div class="skin" onclick="buyChar('🧑‍🚀',300,this)">🧑‍🚀 Astronaut (300)</div>
+    <div class="skin" onclick="buyChar('🧙‍♂️',600,this)">🧙‍♂️ Wizard (600)</div>
+    <div class="skin" onclick="buyChar('🧛',800,this)">🧛 Vampire (800)</div>
+    <div class="skin" onclick="buyChar('🦸',1000,this)">🦸 Superhero (1000)</div>
+    <div class="skin" onclick="buyChar('🤖',1200,this)">🤖 Robot (1200)</div>
+    <div class="skin" onclick="buyChar('🐉',1500,this)">🐉 Dragon Rider (1500)</div>
+    <div class="skin" onclick="buyChar('👑',2000,this)">👑 King (2000)</div>
+  </div>
+  <div class="card">
+    <b>⛏ Pickaxe</b>
+    <div class="skin active" onclick="setPick('⛏',this)">⛏ Default</div>
+    <div class="skin" onclick="buyPick('💎',400,this)">💎 Diamond (400)</div>
+    <div class="skin" onclick="buyPick('🔥',600,this)">🔥 Fire (600)</div>
+    <div class="skin" onclick="buyPick('⚡',800,this)">⚡ Lightning (800)</div>
+    <div class="skin" onclick="buyPick('🌈',1000,this)">🌈 Rainbow (1000)</div>
+    <div class="skin" onclick="buyPick('🪐',1500,this)">🪐 Galaxy (1500)</div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div id="achievement" class="box">
+  <div class="card" id="achievements"></div>
+</div>
+
+<!-- LEADERBOARD Top 3 & Top 20 -->
+<div id="rank" class="box">
+  <div class="card">
+    <b>🥇🥈🥉 Top 3 Players</b>
+    <div id="top3"></div>
+    <b>🏆 Top 20 Players</b>
+    <div id="top20"></div>
+  </div>
+</div>
+
+<!-- ALL PLAYERS -->
+<div id="allplayers" class="box">
+  <div class="card" id="allPlayersList"></div>
+</div>
+
+<!-- CONTACT -->
+<div id="contact" class="box">
+  <div class="card">
+    📨 سازنده: <br>
+    <button onclick="window.open('https://t.me/ImMr_Mmd','_blank')">@ImMr_Mmd</button>
+    <br><br>
+    📣 کانال گیم: <br>
+    <button onclick="window.open('https://t.me/Im_Irooni','_blank')">@Im_Irooni</button>
+  </div>
+</div>
+
+<div class="log" id="log">Ready</div>
+</div>
+
+<script>
+// ==== Telegram WebApp ====
+const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+const beep = f => {let a=new AudioContext(), o=a.createOscillator(); o.frequency.value=f; o.connect(a.destination); o.start(); setTimeout(()=>o.stop(),80)};
+
+// ==== Player data ====
+let today = new Date().toDateString();
+let d = JSON.parse(localStorage.getItem("mineLegend")) || {
+  coin:0, power:1, level:1, xp:0, pCost:10, aCost:50,
+  name: prompt("اسم پلیر؟") || "Miner",
+  char: "👷", pick: "⛏",
+  chars:["👷"], picks:["⛏"],
+  auto:false, lastQuestDay:today, questClaimed:{}, achievements:[],
+  leaderboard:[], allPlayers:[]
+};
+let autoInt=null;
+
+// ==== Quests (multi-stage) ====
+let dailyQuests=[
+  {id:'q1', text:'Mine 100', stages:[100,500,1000], rewards:[50,150,300]},
+  {id:'q2', text:'Reach Lv 5', stages:[5], rewards:[200]},
+  {id:'q3', text:'Mine 2000', stages:[2000,5000], rewards:[500,1200]}
+];
+
+function generateQuestUI(){
+  let questDiv = document.getElementById('quest'); questDiv.innerHTML='';
+  let now = new Date().toDateString();
+  if(d.lastQuestDay!==now){d.lastQuestDay=now; d.questClaimed={};}
+  dailyQuests.forEach(q=>{
+    let stage = d.questClaimed[q.id]||0;
+    let btnDisabled = stage >= q.stages.length ? 'disabled style="background:#555"':'';
+    let btn = `<button onclick="claimQuest('${q.id}')"`+btnDisabled+`>Claim Stage ${stage+1}</button>`;
+    questDiv.innerHTML += `<div class="card">${q.text} - Stage ${stage+1}/${q.stages.length} ${btn}</div>`;
+  });
+}
+
+function claimQuest(id){
+  let q = dailyQuests.find(x=>x.id===id);
+  let stage = d.questClaimed[id]||0;
+  if(stage >= q.stages.length) return;
+  let target = q.stages[stage];
+  let done = (id==='q2')? d.level>=target : d.coin>=target;
+  if(done){ d.coin+=q.rewards[stage]; d.questClaimed[id]=stage+1; beep(800); save(); generateQuestUI(); checkAchievements(); updateLeaderboard(); updateAllPlayers(); }
+  else alert('شرایط کوئست کامل نشده!');
+}
+
+// ==== Mine / Upgrade / Auto ====
+function mine(){ d.coin+=d.power; d.xp+=d.power; checkLevelUp(); beep(300); save(); checkAchievements(); updateLeaderboard(); updateAllPlayers();}
+function upgrade(){ if(d.coin>=d.pCost){d.coin-=d.pCost; d.power++; d.pCost*=2; beep(500); save(); updateLeaderboard(); updateAllPlayers();} }
+function auto(){ if(!d.auto && d.coin>=d.aCost){ d.coin-=d.aCost; d.auto=true; autoInt=setInterval(()=>{d.coin+=d.power; checkLevelUp(); save(); checkAchievements(); updateLeaderboard(); updateAllPlayers();},1500); save(); } }
+
+// ==== Booster / Relic ====
+function booster(){ if(d.coin>=200){ d.coin-=200; d.power*=2; setTimeout(()=>{d.power/=2; save(); updateLeaderboard(); updateAllPlayers();},30000); save();} }
+function relic(){ if(d.coin>=500){d.coin-=500; d.power++; save(); updateLeaderboard(); updateAllPlayers();} }
+
+// ==== Skins ====
+function buyChar(c,p,el){ if(d.coin>=p && !d.chars.includes(c)){ d.coin-=p; d.chars.push(c); setChar(c,el); save(); } }
+function setChar(c,el){ d.char=c; char.innerText=c; document.querySelectorAll("#skin .card:nth-child(1) .skin").forEach(x=>x.classList.remove("active")); el.classList.add("active"); }
+function buyPick(p,pv,el){ if(d.coin>=pv && !d.picks.includes(p)){ d.coin-=pv; d.picks.push(p); setPick(p,el); save(); } }
+function setPick(p,el){ d.pick=p; pick.innerText=p; document.querySelectorAll("#skin .card:nth-child(2) .skin").forEach(x=>x.classList.remove("active")); el.classList.add("active"); }
+
+// ==== Tabs ====
+function tab(id){document.querySelectorAll(".box").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active");}
+
+// ==== Level Up ====
+function checkLevelUp(){
+  let needed = d.level*20;
+  document.getElementById('xpBar').style.width = Math.min(d.xp/needed*100,100)+'%';
+  if(d.xp >= needed){ d.level++; d.xp=0; beep(900); alert(`🎉 تبریک! شما به Lv ${d.level} رسیدید!`);}
+}
+function showLevelInfo(){let needed=d.level*20; alert(`Lv ${d.level+1} نیاز به ${needed} XP دارد`);}
+
+// ==== Achievements ====
+function checkAchievements(){
+  let ach=d.achievements; let added=false;
+  if(d.coin>=500 && !ach.includes('500 Coins')){ ach.push('500 Coins'); added=true;}
+  if(d.coin>=1000 && !ach.includes('1000 Coins')){ ach.push('1000 Coins'); added=true;}
+  if(d.level>=5 && !ach.includes('Reach Level 5')){ ach.push('Reach Level 5'); added=true;}
+  if(d.power>=5 && !ach.includes('Power 5')){ ach.push('Power 5'); added=true;}
+  if(added) updateAchievementUI();
+}
+function updateAchievementUI(){ let div = document.getElementById('achievements'); div.innerHTML = d.achievements.length===0?'No achievements yet':d.achievements.map(a=>`✅ ${a}`).join('<br>'); }
+
+// ==== Leaderboard ====
+function updateLeaderboard(){
+  let lb = [...d.leaderboard];
+  let top3 = lb.sort((a,b)=>b.coin-a.coin).slice(0,3);
+  let top20 = lb.sort((a,b)=>b.coin-a.coin).slice(0,20);
+  let div3 = document.getElementById('top3'); div3.innerHTML='';
+  let div20=document.getElementById('top20'); div20.innerHTML='';
+  top3.forEach((p,i)=>{
+    let c=''; if(i===0)c='gold'; else if(i===1)c='silver'; else if(i===2)c='bronze';
+    div3.innerHTML += `<div class="${c}">${p.name}: ${p.coin}</div>`;
+  });
+  top20.forEach(p=>{div20.innerHTML += `<div>${p.name}: ${p.coin}</div>`;});
+}
+
+// ==== All Players List ====
+function updateAllPlayers(){
+  let div = document.getElementById('allPlayersList'); div.innerHTML='';
+  d.allPlayers = d.allPlayers.filter(p=>p.name!==d.name);
+  d.allPlayers.push({name:d.name, coin:d.coin});
+  d.allPlayers.sort((a,b)=>b.coin-a.coin);
+  d.allPlayers.forEach(p=>div.innerHTML += `<div>${p.name}: ${p.coin}</div>`);
+  d.leaderboard = d.allPlayers.slice(0,20);
+}
+
+// ==== Save ====
+function save(){ localStorage.setItem("mineLegend",JSON.stringify(d));
+coin.innerText=d.coin; power.innerText=d.power; level.innerText=d.level;
+pCost.innerText=d.pCost; aCost.innerText=d.aCost;
+char.innerText=d.char; pick.innerText=d.pick;
+document.getElementById('xpBar').style.width = Math.min(d.xp/(d.level*20)*100,100)+'%';
+}
+
+generateQuestUI(); updateAchievementUI(); updateLeaderboard(); updateAllPlayers(); save();
+</script>
+</body>
+</html>
